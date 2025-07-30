@@ -9,7 +9,7 @@ import {
   Menu,
   MenuItem,
   Chip,
-  Avatar
+  CircularProgress
 } from '@mui/material';
 import {
   AccountBalanceWallet,
@@ -20,7 +20,7 @@ import {
 import { useWallet } from '../../hooks/useWallet';
 
 const Header: React.FC = () => {
-  const { connected, address, balance, connect, disconnect } = useWallet();
+  const { connected, address, balance, connecting, connect, disconnect } = useWallet();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -33,7 +33,7 @@ const Header: React.FC = () => {
 
   const formatAddress = (addr: string | null) => {
     if (!addr) return '';
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+    return `${addr.slice(0, 8)}...${addr.slice(-6)}`;
   };
 
   const formatBalance = (balance: number) => {
@@ -80,11 +80,23 @@ const Header: React.FC = () => {
                 label={formatBalance(balance)}
                 color="primary"
                 variant="outlined"
+                sx={{
+                  background: 'linear-gradient(45deg, rgba(0, 212, 255, 0.1), rgba(255, 107, 53, 0.1))',
+                  borderColor: '#00d4ff'
+                }}
               />
               <Button
                 variant="outlined"
                 startIcon={<AccountBalanceWallet />}
                 onClick={handleMenuOpen}
+                sx={{
+                  borderColor: '#00d4ff',
+                  color: '#00d4ff',
+                  '&:hover': {
+                    borderColor: '#ff6b35',
+                    backgroundColor: 'rgba(255, 107, 53, 0.1)'
+                  }
+                }}
               >
                 {formatAddress(address)}
               </Button>
@@ -92,17 +104,42 @@ const Header: React.FC = () => {
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
                 onClose={handleMenuClose}
+                PaperProps={{
+                  sx: {
+                    bgcolor: 'rgba(18, 18, 18, 0.95)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(0, 212, 255, 0.2)'
+                  }
+                }}
               >
-                <MenuItem onClick={disconnect}>Disconnect</MenuItem>
+                <MenuItem 
+                  onClick={() => {
+                    disconnect();
+                    handleMenuClose();
+                  }}
+                  sx={{ color: '#ff6b35' }}
+                >
+                  Disconnect
+                </MenuItem>
               </Menu>
             </>
           ) : (
             <Button
               variant="contained"
-              startIcon={<AccountBalanceWallet />}
+              startIcon={connecting ? <CircularProgress size={20} color="inherit" /> : <AccountBalanceWallet />}
               onClick={connect}
+              disabled={connecting}
+              sx={{
+                background: 'linear-gradient(45deg, #00d4ff, #ff6b35)',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #0099cc, #cc5522)'
+                },
+                '&:disabled': {
+                  background: 'rgba(0, 212, 255, 0.3)'
+                }
+              }}
             >
-              Connect Wallet
+              {connecting ? 'Connecting...' : 'Connect Internet Identity'}
             </Button>
           )}
 

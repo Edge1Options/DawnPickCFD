@@ -1,11 +1,13 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { authService } from '../services/auth';
 
 interface WalletContextType {
   connected: boolean;
   address: string | null;
   balance: number;
-  connect: () => void;
-  disconnect: () => void;
+  connecting: boolean;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -25,24 +27,65 @@ interface WalletProviderProps {
 export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [connected, setConnected] = useState(false);
   const [address, setAddress] = useState<string | null>(null);
-  const [balance, setBalance] = useState(10000);
+  const [balance, setBalance] = useState(0);
+  const [connecting, setConnecting] = useState(false);
 
-  const connect = () => {
-    setAddress('mock-wallet-address');
-    setConnected(true);
-    setBalance(10000 + Math.random() * 5000);
+  useEffect(() => {
+    initAuth();
+  }, []);
+
+  const initAuth = async () => {
+    try {
+      await authService.init();
+      const isAuth = await authService.isAuthenticated();
+      if (isAuth) {
+        const principal = authService.getPrincipal();
+        setAddress(principal);
+        setConnected(true);
+        // Simulate getting balance
+        setBalance(10000 + Math.random() * 5000);
+      }
+    } catch (error) {
+      console.error('Auth initialization failed:', error);
+    }
   };
 
-  const disconnect = () => {
-    setConnected(false);
-    setAddress(null);
-    setBalance(0);
+  const connect = async () => {
+    if (connecting) return;
+    
+    setConnecting(true);
+    try {
+      const success = await authService.login();
+      if (success) {
+        const principal = authService.getPrincipal();
+        setAddress(principal);
+        setConnected(true);
+        // Simulate getting balance
+        setBalance(10000 + Math.random() * 5000);
+      }
+    } catch (error) {
+      console.error('Connection failed:', error);
+    } finally {
+      setConnecting(false);
+    }
+  };
+
+  const disconnect = async () => {
+    try {
+      await authService.logout();
+      setConnected(false);
+      setAddress(null);
+      setBalance(0);
+    } catch (error) {
+      console.error('Disconnect failed:', error);
+    }
   };
 
   const value = {
     connected,
     address,
     balance,
+    connecting,
     connect,
     disconnect
   };
