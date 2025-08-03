@@ -1,20 +1,21 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { useMediaQuery } from '@mui/material';
 import { WalletProvider } from './hooks/useWallet';
 import { MarketDataProvider } from './hooks/useMarketData';
 import { TradingStateProvider } from './hooks/useTradingState';
+import { ThemeProvider, useTheme } from './hooks/useTheme';
+import { LanguageProvider } from './hooks/useLanguage';
 import Header from './components/Header/Header';
 import TradingDashboard from './components/TradingPanel/TradingDashboard';
 
-function App() {
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+const AppContent: React.FC = () => {
+  const { mode } = useTheme();
   
   const theme = createTheme({
     palette: {
-      mode: 'dark',
+      mode: mode,
       primary: {
         main: '#00d4ff',
       },
@@ -22,8 +23,12 @@ function App() {
         main: '#ff6b35',
       },
       background: {
-        default: '#0a0a0a',
-        paper: '#1a1a1a',
+        default: mode === 'dark' ? '#0a0a0a' : '#f5f5f5',
+        paper: mode === 'dark' ? '#1a1a1a' : '#ffffff',
+      },
+      text: {
+        primary: mode === 'dark' ? '#ffffff' : '#000000',
+        secondary: mode === 'dark' ? '#b0b0b0' : '#666666',
       },
     },
     typography: {
@@ -35,7 +40,7 @@ function App() {
   });
 
   return (
-    <ThemeProvider theme={theme}>
+    <MuiThemeProvider theme={theme}>
       <CssBaseline />
       <WalletProvider>
         <MarketDataProvider>
@@ -49,6 +54,16 @@ function App() {
           </TradingStateProvider>
         </MarketDataProvider>
       </WalletProvider>
+    </MuiThemeProvider>
+  );
+};
+
+function App() {
+  return (
+    <ThemeProvider>
+      <LanguageProvider>
+        <AppContent />
+      </LanguageProvider>
     </ThemeProvider>
   );
 }
