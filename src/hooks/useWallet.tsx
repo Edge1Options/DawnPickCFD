@@ -4,6 +4,7 @@ import { authService } from '../services/auth';
 interface WalletContextType {
   connected: boolean;
   address: string | null;
+  accountId: string | null;
   balance: number;
   connecting: boolean;
   connect: () => Promise<void>;
@@ -27,6 +28,7 @@ interface WalletProviderProps {
 export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [connected, setConnected] = useState(false);
   const [address, setAddress] = useState<string | null>(null);
+  const [accountId, setAccountId] = useState<string | null>(null);
   const [balance, setBalance] = useState(0);
   const [connecting, setConnecting] = useState(false);
 
@@ -40,7 +42,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       const isAuth = await authService.isAuthenticated();
       if (isAuth) {
         const principal = authService.getPrincipal();
+        const account = authService.getAccountId();
         setAddress(principal);
+        setAccountId(account);
         setConnected(true);
         // Simulate getting balance
         setBalance(10000 + Math.random() * 5000);
@@ -58,7 +62,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       const success = await authService.login();
       if (success) {
         const principal = authService.getPrincipal();
+        const account = authService.getAccountId();
         setAddress(principal);
+        setAccountId(account);
         setConnected(true);
         // Simulate getting balance
         setBalance(10000 + Math.random() * 5000);
@@ -75,6 +81,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       await authService.logout();
       setConnected(false);
       setAddress(null);
+      setAccountId(null);
       setBalance(0);
     } catch (error) {
       console.error('Disconnect failed:', error);
@@ -84,6 +91,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const value = {
     connected,
     address,
+    accountId,
     balance,
     connecting,
     connect,
