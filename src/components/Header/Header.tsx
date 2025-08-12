@@ -143,7 +143,8 @@ const Header: React.FC = () => {
                   variant="outlined"
                   sx={{
                     background: 'linear-gradient(45deg, rgba(0, 212, 255, 0.1), rgba(255, 107, 53, 0.1))',
-                    borderColor: '#00d4ff'
+                    borderColor: '#00d4ff',
+                    color: mode === 'dark' ? '#ffffff' : '#000000'
                   }}
                 />
                 <Button
@@ -171,7 +172,8 @@ const Header: React.FC = () => {
                       backdropFilter: 'blur(10px)',
                       border: `1px solid ${mode === 'dark' ? 'rgba(0, 212, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
                       minWidth: 350,
-                      maxWidth: 400
+                      maxWidth: 400,
+                      color: mode === 'dark' ? '#ffffff' : '#000000'
                     }
                   }}
                 >
@@ -195,26 +197,28 @@ const Header: React.FC = () => {
                         Account ID
                       </Typography>
                       <Box sx={{ flexGrow: 1 }} />
-                      <ContentCopy fontSize="small" sx={{ color: 'text.secondary' }} />
+                      <ContentCopy fontSize="small" sx={{ color: mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }} />
                     </Box>
                     <Typography 
                       variant="body2" 
                       sx={{ 
                         wordBreak: 'break-all',
+                        overflowWrap: 'break-word',
+                        whiteSpace: 'normal',
                         fontSize: '0.75rem',
-                        color: 'text.secondary',
+                        color: mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
                         pl: 4.5,
-                        lineHeight: 1.3
+                        lineHeight: 1.3,
+                        maxWidth: '280px'
                       }}
                     >
                       {accountId || 'Loading...'}
                     </Typography>
                   </MenuItem>
                   
-                  <Divider />
+                  <Divider sx={{ borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)' }} />
                   
                   {/* Principal ID */}
-                  // 在第218行附近，将principalId改为address
                   <MenuItem 
                     onClick={() => address && copyToClipboard(address, 'Principal ID')}
                     sx={{ 
@@ -234,23 +238,26 @@ const Header: React.FC = () => {
                         Principal ID
                       </Typography>
                       <Box sx={{ flexGrow: 1 }} />
-                      <ContentCopy fontSize="small" sx={{ color: 'text.secondary' }} />
+                      <ContentCopy fontSize="small" sx={{ color: mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }} />
                     </Box>
                     <Typography 
                       variant="body2" 
                       sx={{ 
                         wordBreak: 'break-all',
+                        overflowWrap: 'break-word',
+                        whiteSpace: 'normal',
                         fontSize: '0.75rem',
-                        color: 'text.secondary',
+                        color: mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
                         pl: 4.5,
-                        lineHeight: 1.3
+                        lineHeight: 1.3,
+                        maxWidth: '280px'
                       }}
                     >
                       {address || 'Loading...'}
                     </Typography>
                   </MenuItem>
                   
-                  <Divider />
+                  <Divider sx={{ borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)' }} />
                   
                   {/* Disconnect */}
                   <MenuItem 
@@ -278,11 +285,13 @@ const Header: React.FC = () => {
                 disabled={connecting}
                 sx={{
                   background: 'linear-gradient(45deg, #00d4ff, #ff6b35)',
+                  color: '#ffffff',
                   '&:hover': {
                     background: 'linear-gradient(45deg, #0099cc, #cc5522)'
                   },
                   '&:disabled': {
-                    background: 'rgba(0, 212, 255, 0.3)'
+                    background: 'rgba(0, 212, 255, 0.3)',
+                    color: 'rgba(255, 255, 255, 0.7)'
                   }
                 }}
               >
@@ -307,22 +316,36 @@ const Header: React.FC = () => {
                   bgcolor: mode === 'dark' ? 'rgba(18, 18, 18, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(10px)',
                   border: `1px solid ${mode === 'dark' ? 'rgba(0, 212, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
-                  minWidth: 200
+                  minWidth: 200,
+                  color: mode === 'dark' ? '#ffffff' : '#000000'
                 }
               }}
             >
               <MenuItem disabled>
-                <ListItemText primary="Theme" sx={{ fontWeight: 'bold' }} />
+                <ListItemText 
+                  primary="Theme" 
+                  sx={{ 
+                    fontWeight: 'bold',
+                    '& .MuiListItemText-primary': {
+                      color: mode === 'dark' ? '#ffffff' : '#000000'
+                    }
+                  }} 
+                />
               </MenuItem>
-              <Divider />
+              <Divider sx={{ borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)' }} />
               <MenuItem 
                 onClick={() => {
                   setTheme('light');
                   handleSettingsMenuClose();
                 }}
+                sx={{
+                  '& .MuiListItemText-primary': {
+                    color: mode === 'dark' ? '#ffffff' : '#000000'
+                  }
+                }}
               >
                 <ListItemIcon>
-                  <LightMode fontSize="small" />
+                  <LightMode fontSize="small" sx={{ color: mode === 'dark' ? '#ffffff' : '#000000' }} />
                 </ListItemIcon>
                 <ListItemText primary="Light" />
                 {mode === 'light' && (
@@ -336,9 +359,14 @@ const Header: React.FC = () => {
                   setTheme('dark');
                   handleSettingsMenuClose();
                 }}
+                sx={{
+                  '& .MuiListItemText-primary': {
+                    color: mode === 'dark' ? '#ffffff' : '#000000'
+                  }
+                }}
               >
                 <ListItemIcon>
-                  <DarkMode fontSize="small" />
+                  <DarkMode fontSize="small" sx={{ color: mode === 'dark' ? '#ffffff' : '#000000' }} />
                 </ListItemIcon>
                 <ListItemText primary="Dark" />
                 {mode === 'dark' && (
@@ -374,7 +402,8 @@ const Header: React.FC = () => {
                   bgcolor: mode === 'dark' ? 'rgba(18, 18, 18, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(10px)',
                   border: `1px solid ${mode === 'dark' ? 'rgba(0, 212, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
-                  minWidth: 150
+                  minWidth: 150,
+                  color: mode === 'dark' ? '#ffffff' : '#000000'
                 }
               }}
             >
@@ -382,6 +411,11 @@ const Header: React.FC = () => {
                 onClick={() => {
                   setLanguage('EN');
                   handleLanguageMenuClose();
+                }}
+                sx={{
+                  '& .MuiListItemText-primary': {
+                    color: mode === 'dark' ? '#ffffff' : '#000000'
+                  }
                 }}
               >
                 <ListItemText primary="English" />
