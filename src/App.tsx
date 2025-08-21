@@ -2,12 +2,14 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { Box } from '@mui/material';
 import { WalletProvider } from './hooks/useWallet';
 import { MarketDataProvider } from './hooks/useMarketData';
 import { TradingStateProvider } from './hooks/useTradingState';
 import { ThemeProvider, useTheme } from './hooks/useTheme';
 import { LanguageProvider } from './hooks/useLanguage';
 import Header from './components/Header/Header';
+import Footer from './components/Footer/Footer';
 import TradingDashboard from './components/TradingPanel/TradingDashboard';
 
 const AppContent: React.FC = () => {
@@ -45,12 +47,27 @@ const AppContent: React.FC = () => {
       <WalletProvider>
         <MarketDataProvider>
           <TradingStateProvider>
-            <div className="App">
+            <Box 
+              className="App"
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: '100vh'
+              }}
+            >
               <Header />
-              <main>
+              <Box 
+                component="main"
+                sx={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
                 <TradingDashboard />
-              </main>
-            </div>
+              </Box>
+              <Footer />
+            </Box>
           </TradingStateProvider>
         </MarketDataProvider>
       </WalletProvider>
