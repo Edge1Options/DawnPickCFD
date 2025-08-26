@@ -7,9 +7,44 @@ import Float "mo:base/Float";
 import Int "mo:base/Int";
 import Result "mo:base/Result";
 import Principal "mo:base/Principal";
+import Timer "mo:base/Timer";
+import Http "mo:http";
 
 actor DawnPickCFD {
-    // 类型定义
+    // 新增CFD产品类型定义
+    public type CFDProduct = {
+        id: Text;
+        symbol: Text;
+        name: Text;
+        openPrice: Float;
+        closePrice: Float;
+        highPrice: Float;
+        lowPrice: Float;
+        volume: Float;
+        tradingDate: Text; // YYYY-MM-DD format
+        createdAt: Int;
+        isActive: Bool;
+        expiryDate: Int; // 到期时间
+    };
+
+    public type MarketData = {
+        symbol: Text;
+        open: Float;
+        high: Float;
+        low: Float;
+        close: Float;
+        volume: Float;
+        date: Text;
+        timestamp: Int;
+    };
+
+    public type APIResponse = {
+        success: Bool;
+        data: ?MarketData;
+        error: ?Text;
+    };
+
+    // 原有类型定义保持不变
     public type Position = {
         id: Text;
         user: Principal;
@@ -20,6 +55,7 @@ actor DawnPickCFD {
         leverage: Nat;
         timestamp: Int;
         isActive: Bool;
+        cfdProductId: ?Text; // 关联的CFD产品ID
     };
 
     public type Order = {
@@ -82,6 +118,8 @@ actor DawnPickCFD {
 
     system func postupgrade() {
         initializePrices();
+        // 启动定时任务
+        ignore scheduleDailyTask();
     };
 
     // 公共方法

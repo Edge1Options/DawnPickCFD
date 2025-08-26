@@ -4,6 +4,10 @@
     "dawnpick_frontend": {
       "type": "assets",
       "source": ["dist"]
+    },
+    "dawnpick_backend": {
+      "type": "motoko",
+      "main": "canister/main.mo"
     }
   },
   "networks": {
