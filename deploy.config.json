@@ -1,0 +1,50 @@
+{
+  "environments": {
+    "local": {
+      "network": "local",
+      "host": "http://localhost:8000",
+      "cycles": 1000000000000,
+      "env_vars": {
+        "NODE_ENV": "development",
+        "REACT_APP_DFX_NETWORK": "local",
+        "REACT_APP_IC_HOST": "http://localhost:8000",
+        "REACT_APP_ENABLE_MOCK_DATA": "true",
+        "REACT_APP_ENABLE_REAL_TRADING": "false"
+      }
+    },
+    "ic": {
+      "network": "ic",
+      "host": "https://ic0.app",
+      "cycles": 2000000000000,
+      "env_vars": {
+        "NODE_ENV": "production",
+        "REACT_APP_DFX_NETWORK": "ic",
+        "REACT_APP_IC_HOST": "https://ic0.app",
+        "REACT_APP_ENABLE_MOCK_DATA": "false",
+        "REACT_APP_ENABLE_REAL_TRADING": "true"
+      }
+    }
+  },
+  "canisters": {
+    "dawnpick_frontend": {
+      "type": "assets",
+      "build_command": "npm run build",
+      "source_dir": "dist",
+      "min_cycles": 1000000000000
+    },
+    "dawnpick_backend": {
+      "type": "motoko",
+      "main_file": "canister/main.mo",
+      "min_cycles": 2000000000000
+    }
+  },
+  "deployment": {
+    "timeout": 300,
+    "retry_count": 3,
+    "verify_deployment": true,
+    "post_deploy_checks": [
+      "canister_status",
+      "health_check"
+    ]
+  }
+}
