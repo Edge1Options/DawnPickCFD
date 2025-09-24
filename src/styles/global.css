@@ -1,3 +1,29 @@
+/* DawnPickCFD 品牌色系全局样式 */
+:root {
+  /* 主色系 */
+  --primary-tech-gold: #C8AA6E;
+  --primary-deep-blue: #0F172A;
+  
+  /* 辅助色系 */
+  --tech-silver: #E2E8F0;
+  --web3-purple: #6366F1;
+  --financial-gray: #1E293B;
+  --alert-gold: #F59E0B;
+  
+  /* 渐变色 */
+  --gradient-primary: linear-gradient(135deg, #C8AA6E 0%, #6366F1 100%);
+  --gradient-background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+  --gradient-card: linear-gradient(135deg, rgba(200, 170, 110, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+  
+  /* 透明度变体 */
+  --tech-gold-10: rgba(200, 170, 110, 0.1);
+  --tech-gold-20: rgba(200, 170, 110, 0.2);
+  --tech-gold-30: rgba(200, 170, 110, 0.3);
+  --deep-blue-90: rgba(15, 23, 42, 0.9);
+  --web3-purple-10: rgba(99, 102, 241, 0.1);
+  --web3-purple-20: rgba(99, 102, 241, 0.2);
+}
+
 /* 全局样式重置和基础样式 */
 * {
   margin: 0;
@@ -6,20 +32,22 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Inter', 'Roboto', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-  color: #ffffff;
+  background: var(--gradient-background);
+  color: var(--tech-silver);
   min-height: 100vh;
+  font-weight: 400;
+  line-height: 1.6;
 }
 
 .app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--gradient-background);
 }
 
 .main-content {
@@ -30,22 +58,24 @@ body {
   width: 100%;
 }
 
-/* 滚动条样式 */
+/* 滚动条样式 - 品牌色系 */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1f3a;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #00d4ff;
+  background: var(--financial-gray);
   border-radius: 4px;
 }
 
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--primary-tech-gold), var(--web3-purple));
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #0099cc;
+  background: linear-gradient(180deg, #D4B87A, #7C7FF5);
 }
 
 /* 响应式设计 */
@@ -71,14 +101,14 @@ body {
   }
 }
 
-/* 加载动画 */
+/* 加载动画 - 品牌色系 */
 .loading-spinner {
   display: inline-block;
   width: 20px;
   height: 20px;
-  border: 3px solid #1a1f3a;
+  border: 3px solid var(--financial-gray);
   border-radius: 50%;
-  border-top-color: #00d4ff;
+  border-top-color: var(--primary-tech-gold);
   animation: spin 1s ease-in-out infinite;
 }
 
@@ -87,3 +117,84 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* 金属质感效果 */
+.tech-gold-metallic {
+  background: linear-gradient(135deg, 
+    #C8AA6E 0%, 
+    #D4B87A 25%, 
+    #C8AA6E 50%, 
+    #B89A5E 75%, 
+    #C8AA6E 100%);
+  background-size: 200% 200%;
+  animation: metallicShine 3s ease-in-out infinite;
+}
+
+@keyframes metallicShine {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* 卡片样式 */
+.brand-card {
+  background: var(--gradient-card);
+  border: 1px solid var(--tech-gold-20);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.brand-card:hover {
+  border-color: var(--primary-tech-gold);
+  box-shadow: 0 8px 32px var(--tech-gold-10);
+  transform: translateY(-2px);
+}
+
+/* 按钮样式 */
+.btn-primary {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px var(--tech-gold-20);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* 输入框样式 */
+.brand-input {
+  background: var(--deep-blue-90);
+  border: 1px solid var(--tech-gold-20);
+  border-radius: 8px;
+  color: var(--tech-silver);
+  transition: all 0.3s ease;
+}
+
+.brand-input:focus {
+  border-color: var(--primary-tech-gold);
+  box-shadow: 0 0 0 2px var(--tech-gold-10);
+  outline: none;
+}
+
+/* 文本颜色类 */
+.text-tech-gold { color: var(--primary-tech-gold); }
+.text-web3-purple { color: var(--web3-purple); }
+.text-tech-silver { color: var(--tech-silver); }
+.text-alert-gold { color: var(--alert-gold); }
+
+/* 背景颜色类 */
+.bg-deep-blue { background-color: var(--primary-deep-blue); }
+.bg-financial-gray { background-color: var(--financial-gray); }
+.bg-gradient-primary { background: var(--gradient-primary); }
+.bg-gradient-card { background: var(--gradient-card); }

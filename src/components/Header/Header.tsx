@@ -33,15 +33,14 @@ import { useTheme } from '../../hooks/useTheme';
 import { useLanguage } from '../../hooks/useLanguage';
 
 const Header: React.FC = () => {
-  const { connected, address, accountId, balance, connecting, connect, disconnect } = useWallet();
+  const { connected, connecting, connect, disconnect, balance, address, accountId } = useWallet();
   const { mode, setTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
   
   const [walletAnchorEl, setWalletAnchorEl] = useState<null | HTMLElement>(null);
   const [settingsAnchorEl, setSettingsAnchorEl] = useState<null | HTMLElement>(null);
   const [languageAnchorEl, setLanguageAnchorEl] = useState<null | HTMLElement>(null);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [copySnackbar, setCopySnackbar] = useState({ open: false, message: '' });
 
   const handleWalletMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setWalletAnchorEl(event.currentTarget);
@@ -67,74 +66,81 @@ const Header: React.FC = () => {
     setLanguageAnchorEl(null);
   };
 
+  const formatBalance = (balance: number): string => {
+    if (balance >= 1000000) {
+      return `${(balance / 1000000).toFixed(2)}M ICP`;
+    } else if (balance >= 1000) {
+      return `${(balance / 1000).toFixed(2)}K ICP`;
+    }
+    return `${balance.toFixed(4)} ICP`;
+  };
+
+  const formatAddress = (address: string | null): string => {
+    if (!address) return '';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
   const copyToClipboard = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setSnackbarMessage(`${label} copied to clipboard!`);
-      setSnackbarOpen(true);
-    } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
-      setSnackbarMessage('Failed to copy to clipboard');
-      setSnackbarOpen(true);
+      setCopySnackbar({ open: true, message: `${label} copied to clipboard!` });
+    } catch (err) {
+      console.error('Failed to copy: ', err);
     }
   };
 
-  const formatAddress = (addr: string | null) => {
-    if (!addr) return '';
-    return `${addr.slice(0, 8)}...${addr.slice(-6)}`;
-  };
-
-  const formatBalance = (balance: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2
-    }).format(balance);
+  const handleCopySnackbarClose = () => {
+    setCopySnackbar({ open: false, message: '' });
   };
 
   return (
     <>
       <AppBar 
-        position="static" 
-        sx={{ 
-          bgcolor: mode === 'dark' ? 'rgba(18, 18, 18, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)',
-          borderBottom: `1px solid ${mode === 'dark' ? 'rgba(0, 212, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-          color: mode === 'dark' ? '#ffffff' : '#000000'
+        position="sticky" 
+        elevation={0}
+        sx={{
+          background: mode === 'dark' 
+            ? 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)'
+            : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: mode === 'dark' 
+            ? '1px solid rgba(200, 170, 110, 0.2)'
+            : '1px solid rgba(30, 41, 59, 0.1)',
         }}
       >
-        <Toolbar sx={{ minHeight: 70 }}>
-          {/* Logo with Edge1 icon */}
-          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-            <Box 
-              component="img" 
-              src="/logo-120.jpg" 
-              alt="Edge1 Logo" 
-              sx={{ 
-                width: 40, 
-                height: 40, 
-                marginRight: 1,
-                borderRadius: 1
-              }} 
-            />
+        <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, md: 4 } }}>
+          {/* Logo */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography 
               variant="h5" 
               component="div" 
               sx={{ 
-                fontWeight: 'bold',
-                background: 'linear-gradient(45deg, #00d4ff, #ff6b35)',
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, #C8AA6E 0%, #6366F1 100%)',
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
+                WebkitTextFillColor: 'transparent',
+                textShadow: mode === 'dark' ? '0 2px 8px rgba(200, 170, 110, 0.3)' : 'none',
               }}
             >
               DawnPickCFD
             </Typography>
+            <Chip 
+              label="Beta" 
+              size="small" 
+              sx={{ 
+                ml: 2,
+                background: 'linear-gradient(135deg, #C8AA6E 0%, #6366F1 100%)',
+                color: '#FFFFFF',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+              }} 
+            />
           </Box>
-          
-          {/* Wallet Section */}
-          <Box display="flex" alignItems="center" gap={2}>
+
+          {/* Actions */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {/* Wallet */}
             {connected ? (
               <>
                 <Chip
@@ -142,9 +148,12 @@ const Header: React.FC = () => {
                   color="primary"
                   variant="outlined"
                   sx={{
-                    background: 'linear-gradient(45deg, rgba(0, 212, 255, 0.1), rgba(255, 107, 53, 0.1))',
-                    borderColor: '#00d4ff',
-                    color: mode === 'dark' ? '#ffffff' : '#000000'
+                    background: mode === 'dark' 
+                      ? 'linear-gradient(45deg, rgba(200, 170, 110, 0.1), rgba(99, 102, 241, 0.1))'
+                      : 'linear-gradient(45deg, rgba(200, 170, 110, 0.05), rgba(99, 102, 241, 0.05))',
+                    borderColor: '#C8AA6E',
+                    color: mode === 'dark' ? '#C8AA6E' : '#6366F1',
+                    fontWeight: 600,
                   }}
                 />
                 <Button
@@ -152,11 +161,13 @@ const Header: React.FC = () => {
                   startIcon={<AccountBalanceWallet />}
                   onClick={handleWalletMenuOpen}
                   sx={{
-                    borderColor: '#00d4ff',
-                    color: '#00d4ff',
+                    borderColor: '#C8AA6E',
+                    color: '#C8AA6E',
+                    fontWeight: 600,
                     '&:hover': {
-                      borderColor: '#ff6b35',
-                      backgroundColor: 'rgba(255, 107, 53, 0.1)'
+                      borderColor: '#6366F1',
+                      backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                      color: '#6366F1',
                     }
                   }}
                 >
@@ -168,15 +179,46 @@ const Header: React.FC = () => {
                   onClose={handleWalletMenuClose}
                   PaperProps={{
                     sx: {
-                      bgcolor: mode === 'dark' ? 'rgba(18, 18, 18, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                      backdropFilter: 'blur(10px)',
-                      border: `1px solid ${mode === 'dark' ? 'rgba(0, 212, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
-                      minWidth: 350,
-                      maxWidth: 400,
-                      color: mode === 'dark' ? '#ffffff' : '#000000'
+                      bgcolor: mode === 'dark' 
+                        ? 'rgba(30, 41, 59, 0.95)' 
+                        : 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(20px)',
+                      border: mode === 'dark' 
+                        ? '1px solid rgba(200, 170, 110, 0.2)' 
+                        : '1px solid rgba(99, 102, 241, 0.2)',
+                      borderRadius: 2,
+                      minWidth: 320,
+                      color: mode === 'dark' ? '#E2E8F0' : '#1E293B',
+                      boxShadow: mode === 'dark' 
+                        ? '0 8px 32px rgba(0, 0, 0, 0.3)'
+                        : '0 8px 32px rgba(0, 0, 0, 0.1)',
                     }
                   }}
                 >
+                  {/* Balance */}
+                  <MenuItem disabled sx={{ opacity: 1 }}>
+                    <ListItemIcon>
+                      <AccountBalanceWallet fontSize="small" sx={{ color: '#C8AA6E' }} />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Balance" 
+                      secondary={formatBalance(balance)}
+                      sx={{
+                        '& .MuiListItemText-primary': {
+                          color: mode === 'dark' ? '#E2E8F0' : '#1E293B',
+                          fontWeight: 600,
+                        },
+                        '& .MuiListItemText-secondary': {
+                          color: '#C8AA6E',
+                          fontWeight: 700,
+                          fontSize: '1.1rem',
+                        }
+                      }}
+                    />
+                  </MenuItem>
+                  
+                  <Divider sx={{ borderColor: mode === 'dark' ? 'rgba(200, 170, 110, 0.2)' : 'rgba(99, 102, 241, 0.2)' }} />
+                  
                   {/* Account ID */}
                   <MenuItem 
                     onClick={() => accountId && copyToClipboard(accountId, 'Account ID')}
@@ -185,28 +227,36 @@ const Header: React.FC = () => {
                       alignItems: 'flex-start',
                       py: 2,
                       '&:hover': {
-                        backgroundColor: mode === 'dark' ? 'rgba(0, 212, 255, 0.1)' : 'rgba(0, 0, 0, 0.04)'
+                        backgroundColor: mode === 'dark' 
+                          ? 'rgba(200, 170, 110, 0.1)' 
+                          : 'rgba(99, 102, 241, 0.05)'
                       }
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', mb: 1 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
-                        <AccountBox fontSize="small" color="primary" />
+                        <AccountBox fontSize="small" sx={{ color: '#6366F1' }} />
                       </ListItemIcon>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                        Account ID
-                      </Typography>
-                      <Box sx={{ flexGrow: 1 }} />
-                      <ContentCopy fontSize="small" sx={{ color: mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }} />
+                      <ListItemText 
+                        primary="Account ID" 
+                        sx={{
+                          '& .MuiListItemText-primary': {
+                            color: mode === 'dark' ? '#E2E8F0' : '#1E293B',
+                            fontWeight: 600,
+                          }
+                        }}
+                      />
+                      <IconButton size="small" sx={{ color: '#94A3B8' }}>
+                        <ContentCopy fontSize="small" />
+                      </IconButton>
                     </Box>
                     <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        wordBreak: 'break-all',
+                      variant="caption" 
+                      sx={{
                         overflowWrap: 'break-word',
                         whiteSpace: 'normal',
                         fontSize: '0.75rem',
-                        color: mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+                        color: mode === 'dark' ? 'rgba(226, 232, 240, 0.7)' : 'rgba(30, 41, 59, 0.6)',
                         pl: 4.5,
                         lineHeight: 1.3,
                         maxWidth: '280px'
@@ -216,7 +266,7 @@ const Header: React.FC = () => {
                     </Typography>
                   </MenuItem>
                   
-                  <Divider sx={{ borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)' }} />
+                  <Divider sx={{ borderColor: mode === 'dark' ? 'rgba(200, 170, 110, 0.2)' : 'rgba(99, 102, 241, 0.2)' }} />
                   
                   {/* Principal ID */}
                   <MenuItem 
@@ -226,28 +276,36 @@ const Header: React.FC = () => {
                       alignItems: 'flex-start',
                       py: 2,
                       '&:hover': {
-                        backgroundColor: mode === 'dark' ? 'rgba(0, 212, 255, 0.1)' : 'rgba(0, 0, 0, 0.04)'
+                        backgroundColor: mode === 'dark' 
+                          ? 'rgba(200, 170, 110, 0.1)' 
+                          : 'rgba(99, 102, 241, 0.05)'
                       }
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', mb: 1 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
-                        <Fingerprint fontSize="small" color="secondary" />
+                        <Fingerprint fontSize="small" sx={{ color: '#6366F1' }} />
                       </ListItemIcon>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'secondary.main' }}>
-                        Principal ID
-                      </Typography>
-                      <Box sx={{ flexGrow: 1 }} />
-                      <ContentCopy fontSize="small" sx={{ color: mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }} />
+                      <ListItemText 
+                        primary="Principal ID" 
+                        sx={{
+                          '& .MuiListItemText-primary': {
+                            color: mode === 'dark' ? '#E2E8F0' : '#1E293B',
+                            fontWeight: 600,
+                          }
+                        }}
+                      />
+                      <IconButton size="small" sx={{ color: '#94A3B8' }}>
+                        <ContentCopy fontSize="small" />
+                      </IconButton>
                     </Box>
                     <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        wordBreak: 'break-all',
+                      variant="caption" 
+                      sx={{
                         overflowWrap: 'break-word',
                         whiteSpace: 'normal',
                         fontSize: '0.75rem',
-                        color: mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+                        color: mode === 'dark' ? 'rgba(226, 232, 240, 0.7)' : 'rgba(30, 41, 59, 0.6)',
                         pl: 4.5,
                         lineHeight: 1.3,
                         maxWidth: '280px'
@@ -257,7 +315,7 @@ const Header: React.FC = () => {
                     </Typography>
                   </MenuItem>
                   
-                  <Divider sx={{ borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)' }} />
+                  <Divider sx={{ borderColor: mode === 'dark' ? 'rgba(200, 170, 110, 0.2)' : 'rgba(99, 102, 241, 0.2)' }} />
                   
                   {/* Disconnect */}
                   <MenuItem 
@@ -265,11 +323,10 @@ const Header: React.FC = () => {
                       disconnect();
                       handleWalletMenuClose();
                     }}
-                    sx={{ 
-                      color: '#ff6b35',
-                      py: 1.5,
+                    sx={{
+                      color: '#F59E0B',
                       '&:hover': {
-                        backgroundColor: 'rgba(255, 107, 53, 0.1)'
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)'
                       }
                     }}
                   >
@@ -284,13 +341,15 @@ const Header: React.FC = () => {
                 onClick={connect}
                 disabled={connecting}
                 sx={{
-                  background: 'linear-gradient(45deg, #00d4ff, #ff6b35)',
+                  background: 'linear-gradient(45deg, #C8AA6E, #6366F1)',
                   color: '#ffffff',
+                  fontWeight: 600,
                   '&:hover': {
-                    background: 'linear-gradient(45deg, #0099cc, #cc5522)'
+                    background: 'linear-gradient(45deg, #D4B87A, #7C7FF5)',
+                    boxShadow: '0 8px 25px rgba(200, 170, 110, 0.3)',
                   },
                   '&:disabled': {
-                    background: 'rgba(0, 212, 255, 0.3)',
+                    background: 'rgba(200, 170, 110, 0.3)',
                     color: 'rgba(255, 255, 255, 0.7)'
                   }
                 }}
@@ -303,7 +362,14 @@ const Header: React.FC = () => {
             <IconButton 
               color="inherit" 
               onClick={handleSettingsMenuOpen}
-              sx={{ color: mode === 'dark' ? '#ffffff' : '#000000' }}
+              sx={{ 
+                color: mode === 'dark' ? '#E2E8F0' : '#1E293B',
+                '&:hover': {
+                  backgroundColor: mode === 'dark' 
+                    ? 'rgba(200, 170, 110, 0.1)' 
+                    : 'rgba(99, 102, 241, 0.1)'
+                }
+              }}
             >
               <Settings />
             </IconButton>
@@ -313,11 +379,16 @@ const Header: React.FC = () => {
               onClose={handleSettingsMenuClose}
               PaperProps={{
                 sx: {
-                  bgcolor: mode === 'dark' ? 'rgba(18, 18, 18, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                  backdropFilter: 'blur(10px)',
-                  border: `1px solid ${mode === 'dark' ? 'rgba(0, 212, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
+                  bgcolor: mode === 'dark' 
+                    ? 'rgba(30, 41, 59, 0.95)' 
+                    : 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  border: mode === 'dark' 
+                    ? '1px solid rgba(200, 170, 110, 0.2)' 
+                    : '1px solid rgba(99, 102, 241, 0.2)',
+                  borderRadius: 2,
                   minWidth: 200,
-                  color: mode === 'dark' ? '#ffffff' : '#000000'
+                  color: mode === 'dark' ? '#E2E8F0' : '#1E293B'
                 }
               }}
             >
@@ -327,12 +398,13 @@ const Header: React.FC = () => {
                   sx={{ 
                     fontWeight: 'bold',
                     '& .MuiListItemText-primary': {
-                      color: mode === 'dark' ? '#ffffff' : '#000000'
+                      color: mode === 'dark' ? '#C8AA6E' : '#6366F1',
+                      fontWeight: 600,
                     }
                   }} 
                 />
               </MenuItem>
-              <Divider sx={{ borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)' }} />
+              <Divider sx={{ borderColor: mode === 'dark' ? 'rgba(200, 170, 110, 0.2)' : 'rgba(99, 102, 241, 0.2)' }} />
               <MenuItem 
                 onClick={() => {
                   setTheme('light');
@@ -340,17 +412,22 @@ const Header: React.FC = () => {
                 }}
                 sx={{
                   '& .MuiListItemText-primary': {
-                    color: mode === 'dark' ? '#ffffff' : '#000000'
+                    color: mode === 'dark' ? '#E2E8F0' : '#1E293B'
+                  },
+                  '&:hover': {
+                    backgroundColor: mode === 'dark' 
+                      ? 'rgba(200, 170, 110, 0.1)' 
+                      : 'rgba(99, 102, 241, 0.05)'
                   }
                 }}
               >
                 <ListItemIcon>
-                  <LightMode fontSize="small" sx={{ color: mode === 'dark' ? '#ffffff' : '#000000' }} />
+                  <LightMode fontSize="small" sx={{ color: mode === 'dark' ? '#E2E8F0' : '#1E293B' }} />
                 </ListItemIcon>
                 <ListItemText primary="Light" />
                 {mode === 'light' && (
                   <ListItemIcon>
-                    <Check fontSize="small" color="primary" />
+                    <Check fontSize="small" sx={{ color: '#C8AA6E' }} />
                   </ListItemIcon>
                 )}
               </MenuItem>
@@ -361,17 +438,22 @@ const Header: React.FC = () => {
                 }}
                 sx={{
                   '& .MuiListItemText-primary': {
-                    color: mode === 'dark' ? '#ffffff' : '#000000'
+                    color: mode === 'dark' ? '#E2E8F0' : '#1E293B'
+                  },
+                  '&:hover': {
+                    backgroundColor: mode === 'dark' 
+                      ? 'rgba(200, 170, 110, 0.1)' 
+                      : 'rgba(99, 102, 241, 0.05)'
                   }
                 }}
               >
                 <ListItemIcon>
-                  <DarkMode fontSize="small" sx={{ color: mode === 'dark' ? '#ffffff' : '#000000' }} />
+                  <DarkMode fontSize="small" sx={{ color: mode === 'dark' ? '#E2E8F0' : '#1E293B' }} />
                 </ListItemIcon>
                 <ListItemText primary="Dark" />
                 {mode === 'dark' && (
                   <ListItemIcon>
-                    <Check fontSize="small" color="primary" />
+                    <Check fontSize="small" sx={{ color: '#C8AA6E' }} />
                   </ListItemIcon>
                 )}
               </MenuItem>
@@ -380,7 +462,14 @@ const Header: React.FC = () => {
             {/* Notifications */}
             <IconButton 
               color="inherit"
-              sx={{ color: mode === 'dark' ? '#ffffff' : '#000000' }}
+              sx={{ 
+                color: mode === 'dark' ? '#E2E8F0' : '#1E293B',
+                '&:hover': {
+                  backgroundColor: mode === 'dark' 
+                    ? 'rgba(200, 170, 110, 0.1)' 
+                    : 'rgba(99, 102, 241, 0.1)'
+                }
+              }}
             >
               <Notifications />
             </IconButton>
@@ -389,7 +478,14 @@ const Header: React.FC = () => {
             <IconButton 
               color="inherit" 
               onClick={handleLanguageMenuOpen}
-              sx={{ color: mode === 'dark' ? '#ffffff' : '#000000' }}
+              sx={{ 
+                color: mode === 'dark' ? '#E2E8F0' : '#1E293B',
+                '&:hover': {
+                  backgroundColor: mode === 'dark' 
+                    ? 'rgba(200, 170, 110, 0.1)' 
+                    : 'rgba(99, 102, 241, 0.1)'
+                }
+              }}
             >
               <Language />
             </IconButton>
@@ -399,11 +495,16 @@ const Header: React.FC = () => {
               onClose={handleLanguageMenuClose}
               PaperProps={{
                 sx: {
-                  bgcolor: mode === 'dark' ? 'rgba(18, 18, 18, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                  backdropFilter: 'blur(10px)',
-                  border: `1px solid ${mode === 'dark' ? 'rgba(0, 212, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
+                  bgcolor: mode === 'dark' 
+                    ? 'rgba(30, 41, 59, 0.95)' 
+                    : 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  border: mode === 'dark' 
+                    ? '1px solid rgba(200, 170, 110, 0.2)' 
+                    : '1px solid rgba(99, 102, 241, 0.2)',
+                  borderRadius: 2,
                   minWidth: 150,
-                  color: mode === 'dark' ? '#ffffff' : '#000000'
+                  color: mode === 'dark' ? '#E2E8F0' : '#1E293B'
                 }
               }}
             >
@@ -414,14 +515,42 @@ const Header: React.FC = () => {
                 }}
                 sx={{
                   '& .MuiListItemText-primary': {
-                    color: mode === 'dark' ? '#ffffff' : '#000000'
+                    color: mode === 'dark' ? '#E2E8F0' : '#1E293B'
+                  },
+                  '&:hover': {
+                    backgroundColor: mode === 'dark' 
+                      ? 'rgba(200, 170, 110, 0.1)' 
+                      : 'rgba(99, 102, 241, 0.05)'
                   }
                 }}
               >
                 <ListItemText primary="English" />
                 {language === 'EN' && (
                   <ListItemIcon>
-                    <Check fontSize="small" color="primary" />
+                    <Check fontSize="small" sx={{ color: '#C8AA6E' }} />
+                  </ListItemIcon>
+                )}
+              </MenuItem>
+              <MenuItem 
+                onClick={() => {
+                  setLanguage('CN');
+                  handleLanguageMenuClose();
+                }}
+                sx={{
+                  '& .MuiListItemText-primary': {
+                    color: mode === 'dark' ? '#E2E8F0' : '#1E293B'
+                  },
+                  '&:hover': {
+                    backgroundColor: mode === 'dark' 
+                      ? 'rgba(200, 170, 110, 0.1)' 
+                      : 'rgba(99, 102, 241, 0.05)'
+                  }
+                }}
+              >
+                <ListItemText primary="中文" />
+                {language === 'CN' && (
+                  <ListItemIcon>
+                    <Check fontSize="small" sx={{ color: '#C8AA6E' }} />
                   </ListItemIcon>
                 )}
               </MenuItem>
@@ -429,20 +558,27 @@ const Header: React.FC = () => {
           </Box>
         </Toolbar>
       </AppBar>
-      
-      {/* Snackbar for copy feedback */}
+
+      {/* Copy Snackbar */}
       <Snackbar
-        open={snackbarOpen}
+        open={copySnackbar.open}
         autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        onClose={handleCopySnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert 
-          onClose={() => setSnackbarOpen(false)} 
+          onClose={handleCopySnackbarClose} 
           severity="success" 
-          sx={{ width: '100%' }}
+          sx={{ 
+            width: '100%',
+            background: 'linear-gradient(135deg, #C8AA6E 0%, #6366F1 100%)',
+            color: '#FFFFFF',
+            '& .MuiAlert-icon': {
+              color: '#FFFFFF'
+            }
+          }}
         >
-          {snackbarMessage}
+          {copySnackbar.message}
         </Alert>
       </Snackbar>
     </>
